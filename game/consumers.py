@@ -8,9 +8,6 @@ class TestConsumer(AsyncJsonWebsocketConsumer):
         # self.game_id = self.scope['path'].split('/')[-1]
         await self.channel_layer.group_add(self.game_id, self.channel_name)
         await self.accept()
-        await self.channel_layer.group_send(self.game_id, {
-            'type': 'chat_join',
-        })
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.game_id, self.channel_name)
@@ -22,21 +19,31 @@ class TestConsumer(AsyncJsonWebsocketConsumer):
                 await self.channel_layer.group_send(self.game_id, {
                     'type': 'chat_message',
                     'message': content['message'],
+                    'username': self.username,
+                })
+            elif command == 'chat_join':
+                self.username = content.get('username', None)
+                await self.channel_layer.group_send(self.game_id, {
+                    'type': 'chat_join',
+                    'username': content.get('username', None)
                 })
         except ValueError as error:
             await self.send_json({'error': error})
 
     async def chat_message(self, event):
         message = event['message']
+        username = event['username']
         await self.send_json(
             {
-                'message': message
+                'type': 'chat_message',
+                'message': '{0}: {1}'.format(username, message)
             }
         )
 
     async def chat_join(self, event):
         await self.send_json(
             {
-                'message': 'joined'
+                'type': 'chat_message',
+                'message': '{0} joined'.format(event['username'])
             }
         )

@@ -202,5 +202,5 @@ test/fixtures/**/.fbkpm
 .pnp
 /packages/lockfile/index.js
 .vscode/
-static/
+/static/
 manage.py
