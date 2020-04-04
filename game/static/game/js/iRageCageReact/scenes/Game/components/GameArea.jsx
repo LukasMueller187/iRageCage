@@ -8,7 +8,6 @@ function GameObject() {
         'y_dot': 0,
         'update': () => {
         },
-        'update_needed': true,
     }
 }
 
@@ -17,50 +16,158 @@ export default class GameArea extends React.Component {
         super(props);
         this.status = Object.freeze({
             'moving': 'moving', 'choose_direction': 'choose_direction',
-            'choose_power': 'choose_power'
+            'choose_power': 'choose_power',
         });
-        this.state = {'cup': GameObject(), 'ball': GameObject(), 'status': this.status.choose_direction};
+        this.state = {
+            'status': '',
+            'cup': GameObject(),
+            'ball': GameObject(),
+            'gauge': GameObject(),
+            'mouse_x': 0,
+            'mouse_y': 0,
+            'your_turn': false,
+        };
         this.canvas = React.createRef();
-        this.context;
+        this.context = {};
         this.update = this.update.bind(this);
+        this.logicMoving = this.logicMoving.bind(this);
+        this.logicChooseDirection = this.logicChooseDirection.bind(this);
+        this.logicChoosePower = this.logicChoosePower.bind(this);
+        this.handleOnMouseDown = this.handleOnMouseDown.bind(this);
+        this.drawBall = this.drawBall.bind(this);
     }
 
     componentDidMount() {
         this.context = this.canvas.current.getContext('2d');
-        console.log(this.context);
+        this.setState({'status': this.status.choose_direction});
+        addEventListener('mousedown', this.handleOnMouseDown);
+        setInterval(this.update, 1 / 60 * 1000);
+        addEventListener('mousemove', event => {
+            const canvas_coords = this.canvas.current.getBoundingClientRect();
+            this.setState({
+                'mouse_x': event.clientX - canvas_coords.left,
+                'mouse_y': event.clientY - canvas_coords.top,
+            });
+        });
+    }
+
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if (prevState.status !== this.state.status) {
+            switch (this.state.status) {
+                case this.status.choose_direction:
+                    this.logicChooseDirection();
+                    break;
+                case this.status.choose_power:
+                    this.logicChoosePower();
+                    break;
+                case this.status.moving:
+                    this.logicMoving();
+                    break;
+            }
+        }
+    }
+
+    logicChooseDirection() {
         let cup_front = new Image();
         cup_front.src = cup_front_url;
-        let ball = new Image();
-        ball.src = ball_url;
         let cup_object = this.state.cup;
         cup_object.update = () => {
             let context = this.canvas.current.getContext('2d');
             context.drawImage(cup_front, 66, 14, 240 - 66, 267 - 14, 500, 1000 - (267 - 14), 240 - 66, 267 - 14);
         };
+        let gauge_object = this.state.gauge;
+        gauge_object.angle = 0;
+        gauge_object.angle_dot = 2;
+        gauge_object.update = () => {
+            let context = this.canvas.current.getContext('2d');
+            context.beginPath();
+            const length = 50;
+            gauge_object.angle += gauge_object.angle_dot;
+            if (gauge_object.angle > 90 || gauge_object.angle < 0)
+                gauge_object.angle_dot = -gauge_object.angle_dot;
+            context.moveTo(this.state.mouse_x, this.state.mouse_y);
+            context.lineWidth = 5;
+            context.lineTo(this.state.mouse_x - Math.cos(gauge_object.angle / 180 * Math.PI) * length,
+                this.state.mouse_y + Math.sin(gauge_object.angle / 180 * Math.PI) * length);
+            context.stroke();
+        };
         let ball_object = this.state.ball;
+        ball_object.update = () => {
+            this.drawBall(this.state.mouse_x, this.state.mouse_y);
+        };
+        this.setState({'cup': cup_object, 'gauge': gauge_object, 'ball': ball_object});
+    }
+
+    logicChoosePower() {
+        let gauge_object = this.state.gauge;
+        gauge_object.power = 50;
+        gauge_object.power_dot = 2;
+        gauge_object.update = () => {
+            let context = this.canvas.current.getContext('2d');
+            context.beginPath();
+            gauge_object.power += gauge_object.power_dot;
+            if (gauge_object.power >= 100 || gauge_object.power <= 0)
+                gauge_object.power_dot = -gauge_object.power_dot;
+            context.moveTo(this.state.mouse_x, this.state.mouse_y);
+            context.lineWidth = 5;
+            context.lineTo(this.state.mouse_x - Math.cos(gauge_object.angle / 180 * Math.PI) * gauge_object.power,
+                this.state.mouse_y + Math.sin(gauge_object.angle / 180 * Math.PI) * gauge_object.power);
+            context.stroke();
+        };
+        let ball_object = this.state.ball;
+        ball_object.update = () => {
+            this.drawBall(this.state.mouse_x, this.state.mouse_y);
+        };
+        this.setState({'gauge': gauge_object, 'ball': ball_object});
+    }
+
+    logicMoving() {
+        let gauge_object = this.state.gauge;
+        gauge_object.update = () => {
+        };
+        let ball_object = this.state.ball;
+        ball_object.x = this.state.mouse_x;
+        ball_object.y = this.state.mouse_y;
+        ball_object.y_dot = 10 * gauge_object.power * Math.sin(gauge_object.angle / 180 * Math.PI);
+        ball_object.x_dot = 10 * -gauge_object.power * Math.cos(gauge_object.angle / 180 * Math.PI);
         ball_object.update = () => {
             ball_object.y += 1 / 60 * ball_object.y_dot + 0.5 * (1 / 60) * (1 / 60) * 1200;
             ball_object.y_dot += 1 / 60 * 1200;
             ball_object.x += 1 / 60 * ball_object.x_dot;
-            ball_object.x_dot = 100;
             if (ball_object.y > 1000 - 120)
                 ball_object.y_dot = -Math.abs(ball_object.y_dot * 0.8);
-            let context = this.canvas.current.getContext('2d');
-            context.drawImage(ball, 0, 0, 200, 200, ball_object.x, ball_object.y, 120, 120);
-
+            this.drawBall(ball_object.x, ball_object.y);
         };
-        this.setState({'cup': cup_object, 'ball': ball_object});
-        setInterval(this.update, 1 / 60 * 1000);
+        this.setState({'ball': ball_object, 'gauge': gauge_object});
     }
 
-    update() {
+    drawBall(x, y) {
+        let ball = new Image();
+        ball.src = ball_url;
+        let context = this.canvas.current.getContext('2d');
+        context.drawImage(ball, 0, 0, 200, 200, x, y, 120, 120);
+    }
+
+    handleOnMouseDown() {
         switch (this.state.status) {
             case this.status.choose_direction:
+                this.setState({'status': this.status.choose_power});
+                break;
+            case this.status.choose_power:
+                this.setState({'status': this.status.moving});
+                break;
             case this.status.moving:
-                this.canvas.current.getContext('2d').clearRect(0, 0, 1920, 1000);
-                this.state.cup.update();
-                this.state.ball.update();
+                this.setState({'status': this.status.choose_direction});
+                break;
         }
+    }
+
+
+    update() {
+        this.canvas.current.getContext('2d').clearRect(0, 0, 1920, 1000);
+        this.state.cup.update();
+        this.state.ball.update();
+        this.state.gauge.update();
     }
 
     render() {

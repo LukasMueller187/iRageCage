@@ -23,7 +23,6 @@ export default class Game extends React.Component {
         };
         websocket.onmessage = data => {
             const content = JSON.parse(data.data);
-            console.log(content);
             switch (content['type']) {
                 case 'chat_message':
                     this.addChatMessage(content['message']);
