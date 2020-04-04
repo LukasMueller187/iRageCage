@@ -1,6 +1,7 @@
 import React from 'react';
 import Chat from './Chat.jsx';
 import {Link} from 'react-router-dom';
+import GameArea from './GameArea.jsx';
 
 
 export default class Game extends React.Component {
@@ -44,6 +45,7 @@ export default class Game extends React.Component {
         return (
             <div>
                 <p>Welcome to room {this.state.game_id}</p>
+                <GameArea />
                 <Chat websocket={this.state.websocket} messages={this.state.chat_messages}/>
             </div>
         );
