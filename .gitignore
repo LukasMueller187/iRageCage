@@ -203,4 +203,3 @@ test/fixtures/**/.fbkpm
 /packages/lockfile/index.js
 .vscode/
 /static/
-manage.py
