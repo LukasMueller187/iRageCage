@@ -1,5 +1,6 @@
 import React from 'react';
 import {Redirect} from 'react-router';
+import UsernameForm from '../../../components/UsernameForm.jsx';
 
 
 export default class Home extends React.Component {
@@ -7,10 +8,8 @@ export default class Home extends React.Component {
         super(props);
         this.state = {
             'random': '',
-            'username': '',
             'redirect': false
         };
-        this.onUsernameChange = this.onUsernameChange.bind(this);
         this.joinRoom = this.joinRoom.bind(this);
     }
 
@@ -19,18 +18,12 @@ export default class Home extends React.Component {
         document.getElementById('username_input').focus();
     }
 
-    onUsernameChange(event) {
-        event.preventDefault();
-        this.setState({'username': event.target.value});
-        document.getElementById('username_input').focus();
-    }
 
     joinRoom(event) {
         event.preventDefault();
-        if (this.state.username.length !== 0) {
+        if (this.props.username.length !== 0) {
             this.setState(({'redirect': true}));
-        }
-        else {
+        } else {
             this.setState(({'redirect': false}));
             alert("Please specify a username!")
         }
@@ -38,14 +31,14 @@ export default class Home extends React.Component {
 
     render() {
         if (this.state.redirect) {
-            return <Redirect push to={"/play/#" + this.state.random} />;
+            return <Redirect push to={"/play/#" + this.state.random}/>;
         }
         return (
             <div>
                 <p>Hi! Please join a room</p>
                 <form>
-                    <input id="username_input" type="text" onChange={this.onUsernameChange}
-                           value={this.state.username}/>
+                    <UsernameForm username={this.props.username}
+                                  handleOnUsernameChange={this.props.handleOnUsernameChange}/>
                     <button onClick={this.joinRoom} type="submit">Join Room</button>
                 </form>
             </div>
