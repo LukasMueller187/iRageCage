@@ -149,17 +149,18 @@ export default class GameArea extends React.Component {
     }
 
     handleOnMouseDown() {
-        switch (this.state.status) {
-            case this.status.choose_direction:
-                this.setState({'status': this.status.choose_power});
-                break;
-            case this.status.choose_power:
-                this.setState({'status': this.status.moving});
-                break;
-            case this.status.moving:
-                this.setState({'status': this.status.choose_direction});
-                break;
-        }
+        if (this.props.yourTurn)
+            switch (this.state.status) {
+                case this.status.choose_direction:
+                    this.setState({'status': this.status.choose_power});
+                    break;
+                case this.status.choose_power:
+                    this.setState({'status': this.status.moving});
+                    break;
+                case this.status.moving:
+                    this.setState({'status': this.status.choose_direction});
+                    break;
+            }
     }
 
 

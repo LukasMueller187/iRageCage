@@ -1,5 +1,7 @@
 export const websocket_commands = Object.freeze({
     'chat_message': 'chat_message',
-    'chat_join': 'chat_join',
-    'heartbeat': 'heartbeat'
+    'join': 'join',
+    'leave': 'leave',
+    'whose_turn': 'whose_turn',
+    'userlist': 'userlist',
 });
