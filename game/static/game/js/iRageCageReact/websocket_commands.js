@@ -4,4 +4,5 @@ export const websocket_commands = Object.freeze({
     'leave': 'leave',
     'whose_turn': 'whose_turn',
     'userlist': 'userlist',
+    'game_state_update': 'game_state_update',
 });
