@@ -20,7 +20,8 @@ export default class GameArea extends React.Component {
         });
         this.state = {
             'status': '',
-            'cup': GameObject(),
+            'cup_bg': GameObject(),
+            'cup_fg': GameObject(),
             'ball': GameObject(),
             'gauge': GameObject(),
             'mouse_x': 0,
@@ -68,13 +69,21 @@ export default class GameArea extends React.Component {
     }
 
     logicChooseDirection() {
-        let cup_front = new Image();
-        cup_front.src = cup_front_url;
-        let cup_object = this.state.cup;
-        cup_object.update = () => {
+        let cup_front_bg = new Image();
+        cup_front_bg.src = cup_front_bg_url;
+        let cup_bg_object = this.state.cup_bg;
+        cup_bg_object.update = () => {
             let context = this.canvas.current.getContext('2d');
-            context.drawImage(cup_front, 66, 14, 240 - 66, 267 - 14, 500, 1000 - (267 - 14), 240 - 66, 267 - 14);
+            context.drawImage(cup_front_bg, 66, 14, 240 - 66, 267 - 14, 500, 1000 - (267 - 14), 240 - 66, 267 - 14);
         };
+        let cup_front_fg = new Image();
+        cup_front_fg.src = cup_front_fg_url;
+        let cup_fg_object = this.state.cup_fg;
+        cup_fg_object.update = () => {
+            let context = this.canvas.current.getContext('2d');
+            context.drawImage(cup_front_fg, 66, 14, 240 - 66, 267 - 14, 500, 1000 - (267 - 14), 240 - 66, 267 - 14);
+        };
+
         let gauge_object = this.state.gauge;
         gauge_object.angle = 0;
         gauge_object.angle_dot = 2;
@@ -95,7 +104,8 @@ export default class GameArea extends React.Component {
         ball_object.update = () => {
             this.drawBall(this.state.mouse_x, this.state.mouse_y);
         };
-        this.setState({'cup': cup_object, 'gauge': gauge_object, 'ball': ball_object});
+        this.setState({'cup_bg': cup_bg_object, 'cup_fg': cup_fg_object, 'gauge': gauge_object,
+            'ball': ball_object});
     }
 
     logicChoosePower() {
@@ -149,25 +159,26 @@ export default class GameArea extends React.Component {
     }
 
     handleOnMouseDown() {
-        if (this.props.yourTurn)
-            switch (this.state.status) {
-                case this.status.choose_direction:
-                    this.setState({'status': this.status.choose_power});
-                    break;
-                case this.status.choose_power:
-                    this.setState({'status': this.status.moving});
-                    break;
-                case this.status.moving:
-                    this.setState({'status': this.status.choose_direction});
-                    break;
-            }
+        // if (this.props.yourTurn)
+        switch (this.state.status) {
+            case this.status.choose_direction:
+                this.setState({'status': this.status.choose_power});
+                break;
+            case this.status.choose_power:
+                this.setState({'status': this.status.moving});
+                break;
+            case this.status.moving:
+                this.setState({'status': this.status.choose_direction});
+                break;
+        }
     }
 
 
     update() {
         this.canvas.current.getContext('2d').clearRect(0, 0, 1920, 1000);
-        this.state.cup.update();
+        this.state.cup_bg.update();
         this.state.ball.update();
+        this.state.cup_fg.update();
         this.state.gauge.update();
     }
 
