@@ -39,25 +39,32 @@ class TestConsumer(AsyncJsonWebsocketConsumer):
                     'username': self.username
                 })
             elif command == 'whose_turn':
+                if not self.whose_turn:
+                    if len(self.users) > 0:
+                        self.whose_turn = self.users[0]
                 await self.channel_layer.group_send(self.game_id, {
-                    'type': 'whose_turn',
-                    'username': content.get('username', None),
+                    'type': 'whose_turn_handler',
+                    'username': self.whose_turn,
                 })
             elif command == 'userlist':
                 if 'users' in content.keys():
+                    self.users = content['users']
                     await self.channel_layer.group_send(self.game_id, {
                         'type': 'userlist',
+                        'username': self.username,
                         'users': content['users'],
                     })
                 else:
                     await self.channel_layer.group_send(self.game_id, {
                         'type': 'userlist',
+                        'username': self.username,
                     })
 
         except ValueError as error:
             await self.send_json({'error': error})
 
     async def chat_message(self, event):
+        print('{0} server has {1}'.format(self.username, self.users))
         message = event['message']
         username = event['username']
         await self.send_json(
@@ -95,7 +102,24 @@ class TestConsumer(AsyncJsonWebsocketConsumer):
             }
         )
 
-    async def whose_turn(self, event):
+    async def userlist(self, event):
+        if 'users' in event.keys():
+            await self.send_json(
+                {
+                    'type': 'userlist',
+                    'username': event['username'],
+                    'users': event['users'],
+                }
+            )
+        else:
+            await self.send_json(
+                {
+                    'type': 'userlist',
+                    'username': event['username'],
+                }
+            )
+
+    async def whose_turn_handler(self, event):
         if event['username']:
             await self.send_json(
                 {
@@ -113,20 +137,5 @@ class TestConsumer(AsyncJsonWebsocketConsumer):
             await self.send_json(
                 {
                     'type': 'whose_turn',
-                }
-            )
-
-    async def userlist(self, event):
-        if 'users' in event.keys():
-            await self.send_json(
-                {
-                    'type': 'userlist',
-                    'users': event['users'],
-                }
-            )
-        else:
-            await self.send_json(
-                {
-                    'type': 'userlist',
                 }
             )
