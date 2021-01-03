@@ -116,7 +116,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = './static/'
 
-ASGI_APPLICATION = 'iRageCage.routing.application'
+ASGI_APPLICATION = 'iRageCage.asgi.application'
 
 CHANNEL_LAYERS = {
     'default': {

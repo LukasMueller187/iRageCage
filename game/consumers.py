@@ -7,7 +7,7 @@ class TestConsumer(AsyncJsonWebsocketConsumer):
         self.username = ''
         self.users = []
         self.whose_turn = ''
-        super().__init__(*args, **kwargs)
+        super().__init__()
 
     async def connect(self):
         self.game_id = self.scope['url_route']['kwargs']['game_id']
